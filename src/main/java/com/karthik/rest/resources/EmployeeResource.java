@@ -71,5 +71,10 @@ public class EmployeeResource {
 	public void delete(Long empId) {
 		service.delete(empId);
 	}
+	
+	@Path("/{empId}/assets")
+	public AssetResource getAssetResource() {
+		return new AssetResource();
+	}
 
 }
