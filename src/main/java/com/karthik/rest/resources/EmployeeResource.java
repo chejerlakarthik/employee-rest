@@ -1,7 +1,9 @@
 package com.karthik.rest.resources;
 
+import java.net.URI;
 import java.util.List;
 
+import javax.ws.rs.BeanParam;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -10,30 +12,33 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 
 import com.karthik.rest.business.service.EmployeeService;
 import com.karthik.rest.business.service.model.Employee;
+import com.karthik.rest.exception.DoesNotExistException;
+import com.karthik.rest.params.EmployeeBeanParam;
 
 @Path("/employees")
-@Produces(value = { MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
-@Consumes(value = { MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+@Produces(value = { MediaType.APPLICATION_JSON })
+@Consumes(value = { MediaType.APPLICATION_JSON })
 public class EmployeeResource {
 
 	private EmployeeService service = new EmployeeService();
 
 	@GET
-	public List<Employee> getAll(@QueryParam(value = "year") Integer year,
-								 @QueryParam(value = "start") Integer start,
-								 @QueryParam(value = "size") Integer size) {
+	public List<Employee> getAll(@BeanParam EmployeeBeanParam paramsBean) {
 		// Filtering parameters
-		if (year != null && year > 0) {
-			return service.readAllFilteredByYear(year);
+		if (paramsBean.getYear() != null && paramsBean.getYear() > 0) {
+			return service.readAllFilteredByYear(paramsBean.getYear());
 		}
 		// Pagination parameters
-		if (start != null && size != null && start > 0 && size > 0) {
-			return service.readAllPaginated(start, size);
+		if (paramsBean.getStart() != null && paramsBean.getSize() != null 
+				&& paramsBean.getStart() > 0 && paramsBean.getSize() > 0) {
+			return service.readAllPaginated(paramsBean.getStart(), paramsBean.getSize());
 		}
 
 		return service.readAll();
@@ -41,13 +46,18 @@ public class EmployeeResource {
 
 	@GET
 	@Path("/{empId}")
-	public Employee get(@PathParam(value = "empId") Long empId) {
+	public Employee get(@PathParam(value = "empId") Long empId) throws DoesNotExistException {
 		return service.read(empId);
 	}
 
 	@POST
-	public Employee add(Employee employee) {
-		return service.create(employee);
+	public Response add(Employee employee, @Context UriInfo uriInfo) {
+		Employee newEmployee = service.add(employee);
+		String newId = String.valueOf(newEmployee.getEmpId());
+		URI newResourceLocation = uriInfo.getAbsolutePathBuilder().path(newId).build();
+		return Response.created(newResourceLocation)
+					   .entity(newEmployee)
+					   .build();
 	}
 
 	@PUT

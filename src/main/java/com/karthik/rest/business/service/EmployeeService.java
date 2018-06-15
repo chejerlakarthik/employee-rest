@@ -7,6 +7,7 @@ import java.util.List;
 
 import com.karthik.rest.business.service.model.Employee;
 import com.karthik.rest.dao.EmployeeDao;
+import com.karthik.rest.exception.DoesNotExistException;
 
 public class EmployeeService {
 	
@@ -15,14 +16,17 @@ public class EmployeeService {
 		EmployeeDao.employees.put(2L, new Employee(2L, "Aarthi"));
 	}
 
-	public Employee create(Employee employee) {
+	public Employee add(Employee employee) {
 		employee.setLastModified(new Date());
 		EmployeeDao.employees.put(employee.getEmpId(), employee);
 		return employee;
 	}
 	
-	public Employee read(Long empId) {
-		return EmployeeDao.employees.get(empId);
+	public Employee read(Long empId) throws DoesNotExistException {
+		Employee employee = EmployeeDao.employees.get(empId);
+		if (employee == null)
+			throw new DoesNotExistException("Employee " + empId +" does not exist");
+		return employee;
 	}
 	
 	public List<Employee> readAll() {
@@ -45,7 +49,11 @@ public class EmployeeService {
 	
 	public List<Employee> readAllPaginated(Integer start, Integer pagesize) {
 		assert (start > 0 && pagesize > 0);
-		return EmployeeDao.getEmployees().subList(start, pagesize);
+		
+		if (pagesize > EmployeeDao.getEmployees().size())
+			pagesize = EmployeeDao.getEmployees().size();
+		
+		return EmployeeDao.getEmployees().subList(start-1, start + pagesize -1);
 	}
 	
 	public Employee update(Long empId, Employee employee) {
