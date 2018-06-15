@@ -10,7 +10,7 @@ import javax.ws.rs.PathParam;
 import com.karthik.rest.business.service.AssetService;
 import com.karthik.rest.business.service.model.Asset;
 
-@Path("/")
+@Path("")
 public class AssetResource {
 
 	private AssetService assetService = new AssetService();

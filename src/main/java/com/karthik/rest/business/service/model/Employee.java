@@ -5,7 +5,7 @@ import java.util.Date;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
-public class Employee {
+public class Employee extends RestResource {
 
 	private Long empId;
 	private String empName;

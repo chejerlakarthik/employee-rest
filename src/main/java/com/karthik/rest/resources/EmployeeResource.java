@@ -1,6 +1,7 @@
 package com.karthik.rest.resources;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.BeanParam;
@@ -30,7 +31,7 @@ public class EmployeeResource {
 	private EmployeeService service = new EmployeeService();
 
 	@GET
-	public List<Employee> getAll(@BeanParam EmployeeBeanParam paramsBean) {
+	public List<Employee> getAll(@BeanParam EmployeeBeanParam paramsBean, @Context UriInfo uriInfo) {
 		// Filtering parameters
 		if (paramsBean.getYear() != null && paramsBean.getYear() > 0) {
 			return service.readAllFilteredByYear(paramsBean.getYear());
@@ -41,13 +42,42 @@ public class EmployeeResource {
 			return service.readAllPaginated(paramsBean.getStart(), paramsBean.getSize());
 		}
 
-		return service.readAll();
+		List<Employee> employees = new ArrayList<Employee>();
+		for (Employee employee : service.readAll()) {
+			String eid = String.valueOf(employee.getEmpId());
+			employee.addLink(linkToSelf(uriInfo, eid), "self");
+			employee.addLink(linkToAssets(uriInfo, eid), "self");
+			employees.add(employee);
+		}
+		return employees;
 	}
 
 	@GET
 	@Path("/{empId}")
-	public Employee get(@PathParam(value = "empId") Long empId) throws DoesNotExistException {
-		return service.read(empId);
+	public Employee get(@PathParam(value = "empId") Long empId, @Context UriInfo uriInfo) throws DoesNotExistException {
+		Employee employee = service.read(empId);
+		String eid = String.valueOf(empId);
+		employee.addLink(linkToSelf(uriInfo, eid), "self");
+		employee.addLink(linkToAssets(uriInfo, eid), "assets");
+		return employee;
+	}
+
+	private String linkToSelf(UriInfo uriInfo, String empId) {
+		return uriInfo.getBaseUriBuilder()
+					  .path(EmployeeResource.class)
+					  .path(empId)
+					  .build()
+					  .toString();
+	}
+	
+	private String linkToAssets(UriInfo uriInfo, String empId) {
+		return uriInfo.getBaseUriBuilder()
+					  .path(EmployeeResource.class)
+					  .path(EmployeeResource.class, "getAssetResource")
+					  .path(AssetResource.class)
+					  .resolveTemplate("empId", empId)
+					  .build()
+					  .toString();
 	}
 
 	@POST
