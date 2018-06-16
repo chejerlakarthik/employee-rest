@@ -45,8 +45,12 @@ public class EmployeeResource {
 		List<Employee> employees = new ArrayList<Employee>();
 		for (Employee employee : service.readAll()) {
 			String eid = String.valueOf(employee.getEmpId());
+			
+			//First reset the links
+			employee.resetLinks();
+			
 			employee.addLink(linkToSelf(uriInfo, eid), "self");
-			employee.addLink(linkToAssets(uriInfo, eid), "self");
+			employee.addLink(linkToAssets(uriInfo, eid), "assets");
 			employees.add(employee);
 		}
 		return employees;
@@ -57,6 +61,10 @@ public class EmployeeResource {
 	public Employee get(@PathParam(value = "empId") Long empId, @Context UriInfo uriInfo) throws DoesNotExistException {
 		Employee employee = service.read(empId);
 		String eid = String.valueOf(empId);
+		
+		//First reset the links
+		employee.resetLinks();
+				
 		employee.addLink(linkToSelf(uriInfo, eid), "self");
 		employee.addLink(linkToAssets(uriInfo, eid), "assets");
 		return employee;

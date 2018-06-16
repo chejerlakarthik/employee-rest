@@ -23,5 +23,9 @@ public class RestResource {
 		link.setRel(rel);
 		getLinks().add(link);
 	}
+	
+	public void resetLinks() {
+		this.links = new ArrayList<>();
+	}
 
 }

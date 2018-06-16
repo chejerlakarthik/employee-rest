@@ -2,7 +2,7 @@ package com.karthik.rest.business.service.model;
 
 import java.util.Date;
 
-public class Asset {
+public class Asset extends RestResource{
 
 	private int assetId;
 	private String assetName;
